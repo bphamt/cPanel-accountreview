@@ -95,7 +95,7 @@ def documentroot():
     documentroot_string = 'cat /var/cpanel/userdata/{}/{} | grep -w "path:" | sed -n "1p"'.format(user, primarydomain())
     documentroot_result = subprocess.check_output(documentroot_string, shell=True)
     documentroot_final = (documentroot_result.split(':')[1]).strip()
-    return documentroot_final
+    return documentroot_final.replace('cgi-bin', '')
 
 
 def addondomains():
@@ -123,7 +123,7 @@ def addon_documentroot(domaininput):
     addon_documentroot_string = 'cat /var/cpanel/userdata/{}/{} | grep -w "documentroot:"'.format(user, domaininput)
     addon_documentroot_result = subprocess.check_output(addon_documentroot_string, shell=True)
     addon_documentroot_final = (addon_documentroot_result.split(':')[1]).strip()
-    return addon_documentroot_final
+    return addon_documentroot_final.replace('cgi-bin', '')
 
 def parkeddomains():
     parkeddomains_string = 'cat /var/cpanel/userdata/{}/main'.format(user)
