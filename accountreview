@@ -1,0 +1,240 @@
+# /usr/local/bin/python2.7
+# Binh Pham
+# Shows cPanel owner of a domain
+# Command: whoowns example.com
+
+import sys
+import subprocess
+
+# Grabs user input & stores it into username var
+username_input = sys.argv
+user = username_input[1]
+
+cmd = 'whmapi1 accountsummary user={}'.format(user)
+cmd_result = subprocess.check_output(cmd, shell=True)
+
+class bcolors:
+    HEADER = '\033[95m'
+    OKBLUE = '\033[94m'
+    OKCYAN = '\033[96m'
+    OKGREEN = '\033[92m'
+    WARNING = '\033[93m'
+    FAIL = '\033[91m'
+    ENDC = '\033[0m'
+    BOLD = '\033[1m'
+    UNDERLINE = '\033[4m'
+
+def username():
+    username_string = 'whmapi1 accountsummary user={} | grep user'.format(user)
+    username_result = subprocess.check_output(username_string, shell=True)
+    username_final = (username_result.split(':')[1]).strip()
+    return username_final
+
+
+def ipaddress():
+    ip_string = 'whmapi1 accountsummary user={} | grep -w "ip:"'.format(user)
+    ip_result = subprocess.check_output(ip_string, shell=True)
+    ip_final = (ip_result.split(':')[1]).strip()
+    return ip_final
+
+
+def primarydomain():
+    primarydomain_string = 'whmapi1 accountsummary user={} | grep -w "domain:"'.format(user)
+    primarydomain_result = subprocess.check_output(primarydomain_string, shell=True)
+    primarydomain_final = (primarydomain_result.split(':')[1]).strip()
+    return primarydomain_final
+
+
+def diskused():
+    diskused_string = 'whmapi1 accountsummary user={} | grep -w "diskused:"'.format(user)
+    diskused_result = subprocess.check_output(diskused_string, shell=True)
+    diskused_final = (diskused_result.split(':')[1]).strip()
+    return diskused_final
+
+
+def disklimit():
+    disklimit_string = 'whmapi1 accountsummary user={} | grep -w "disklimit:"'.format(user)
+    disklimit_result = subprocess.check_output(disklimit_string, shell=True)
+    disklimit_final = (disklimit_result.split(':')[1]).strip()
+    return disklimit_final
+
+
+def suspended():
+    suspended_string = 'whmapi1 accountsummary user={} | grep -w "suspended:"'.format(user)
+    suspended_result = subprocess.check_output(suspended_string, shell=True)
+    suspended_final = (suspended_result.split(':')[1]).strip()
+    if str(suspended_final) == "1":
+        suspended_final = "Yes"
+    else:
+        suspended_final = "No"
+    return suspended_final
+
+
+def suspension_reasoning():
+    suspension_reasoning_string = 'whmapi1 accountsummary user={} | grep -w "suspendreason:"'.format(user)
+    suspension_reasoning_result = subprocess.check_output(suspension_reasoning_string, shell=True)
+    suspension_reasoning_final = (suspension_reasoning_result.split(':')[1]).strip()
+    return suspension_reasoning_final
+
+
+def package_type():
+    package_type_string = 'whmapi1 accountsummary user={} | grep -w "plan:"'.format(user)
+    package_type_result = subprocess.check_output(package_type_string, shell=True)
+    package_type_final = (package_type_result.split(':')[1]).strip()
+    return package_type_final
+
+
+def resellerowner():
+    resellerowner_string = 'whmapi1 accountsummary user={} | grep -w "owner:"'.format(user)
+    resellerowner_result = subprocess.check_output(resellerowner_string, shell=True)
+    resellerowner_final = (resellerowner_result.split(':')[1]).strip()
+    return resellerowner_final
+
+
+def documentroot():
+    documentroot_string = 'cat /var/cpanel/userdata/{}/{} | grep -w "path:" | sed -n "1p"'.format(user, primarydomain())
+    documentroot_result = subprocess.check_output(documentroot_string, shell=True)
+    documentroot_final = (documentroot_result.split(':')[1]).strip()
+    return documentroot_final
+
+
+def addondomains():
+    addondomains_string = 'cat /var/cpanel/userdata/{}/main'.format(user)
+    addondomains_result = subprocess.check_output(addondomains_string, shell=True)
+    start = 'addon_domains:'
+    end = 'main_domain:'
+    result_list = ((addondomains_result[
+                    addondomains_result.find(start) + len(start):addondomains_result.rfind(end)]).strip()).split(" ")
+    new_result_list = []
+    final_result_list = []
+
+    while "" in result_list:
+        result_list.remove("")
+
+    for element in result_list:
+        new_result_list.append(element.strip())
+
+    for element in new_result_list:
+        final_result_list.append(element.strip(':'))
+
+    return final_result_list
+
+def addon_documentroot(domaininput):
+    addon_documentroot_string = 'cat /var/cpanel/userdata/{}/{} | grep -w "documentroot:"'.format(user, domaininput)
+    addon_documentroot_result = subprocess.check_output(addon_documentroot_string, shell=True)
+    addon_documentroot_final = (addon_documentroot_result.split(':')[1]).strip()
+    return addon_documentroot_final
+
+def parkeddomains():
+    parkeddomains_string = 'cat /var/cpanel/userdata/{}/main'.format(user)
+    parkeddomains_result = subprocess.check_output(parkeddomains_string, shell=True)
+    start = 'parked_domains:'
+    end = 'sub_domains:'
+    result_list = ((parkeddomains_result[
+                    parkeddomains_result.find(start) + len(start):parkeddomains_result.rfind(end)]).strip()).split(" ")
+    new_result_list = []
+    final_result_list = []
+
+    while "" in result_list:
+        result_list.remove("")
+
+    for element in result_list:
+        new_result_list.append(element.strip())
+
+    for element in new_result_list:
+        final_result_list.append(element.strip('-'))
+
+    while "" in final_result_list:
+        final_result_list.remove("")
+
+    return final_result_list
+
+def subdomains():
+    subdomains_string = 'cat /var/cpanel/userdata/{}/main'.format(user)
+    subdomains_result = subprocess.check_output(subdomains_string, shell=True)
+    start = 'sub_domains'
+    end = ''
+    result_list = ((subdomains_result[
+                    subdomains_result.find(start) + len(start):subdomains_result.rfind(end)]).strip()).split(" ")
+
+    new_result_list = []
+    final_result_list = []
+    final_final_result_list = []
+
+    while "" in result_list:
+        result_list.remove("")
+
+    for element in result_list:
+        new_result_list.append(element.strip())
+
+    for element in new_result_list:
+        final_result_list.append(element.strip('-'))
+
+    for element in final_result_list:
+        final_final_result_list.append(element.strip(':'))
+
+    while "" in final_final_result_list:
+        final_final_result_list.remove("")
+
+    return final_final_result_list
+
+try:
+    print(bcolors.OKGREEN + "-------------------------------------------------")
+    print("-                Account Review                 -")
+    print("-------------------------------------------------" + bcolors.ENDC)
+    print(bcolors.OKGREEN + "-" + bcolors.ENDC + bcolors.OKBLUE + "  Username: " + bcolors.ENDC + "{}".format(username()))
+    print(bcolors.OKGREEN + "-" + bcolors.ENDC + bcolors.OKBLUE + "  Primary Domain: " + bcolors.ENDC + "{}".format(primarydomain()))
+    print(bcolors.OKGREEN + "-" + bcolors.ENDC + bcolors.OKBLUE + "  IP Address: " + bcolors.ENDC + "{}".format(ipaddress()))
+    print(bcolors.OKGREEN + "-" + bcolors.ENDC + bcolors.OKBLUE + "  Reseller Owner: " + bcolors.ENDC + "{0}".format(resellerowner()))
+    print(bcolors.OKGREEN + "-" + bcolors.ENDC + bcolors.OKBLUE + "  Package Type: " + bcolors.ENDC + "{0}".format(package_type()))
+    print(bcolors.OKGREEN + "-" + bcolors.ENDC + bcolors.OKBLUE + "  DocumentRoot: " + bcolors.ENDC + "{0}".format(documentroot()))
+    print(bcolors.OKGREEN + "-" + bcolors.ENDC + bcolors.OKBLUE + "  Disk usage: " + bcolors.ENDC + "{0} / {1}".format(diskused(), disklimit()))
+    print(bcolors.OKGREEN + "-" + bcolors.ENDC + bcolors.FAIL + "  Suspended?: " + bcolors.ENDC + "{0}".format(suspended()))
+    if suspended() == "Yes":
+        print(bcolors.FAIL + "-" + bcolors.ENDC + bcolors.OKBLUE + "   Suspension Reason: " + bcolors.ENDC + "{0}".format(suspension_reasoning()))
+    print(bcolors.OKGREEN + "-------------------------------------------------")
+    print("-               Addon Domains                   -")
+    print("-------------------------------------------------" + bcolors.ENDC)
+
+    try:
+        for i in range(0, len(addondomains()), 2):
+            if str(addondomains()[i]) == "{}":
+                continue
+            else:
+                print(bcolors.OKGREEN + "-" + bcolors.ENDC + bcolors.WARNING + " " + addondomains()[i] + bcolors.ENDC)
+                print(" \__ DocumentRoot: {}".format(addon_documentroot(addondomains()[i+1])))
+    except:
+        print("")
+
+    print(bcolors.OKGREEN + "-------------------------------------------------")
+    print("-               Parked Domains                  -")
+    print("-------------------------------------------------" + bcolors.ENDC)
+
+    try:
+        for i in parkeddomains():
+            if str(i) == "[]":
+                continue
+            else:
+                print(bcolors.OKGREEN + "-" + bcolors.ENDC + bcolors.WARNING + " " + i + bcolors.ENDC)
+                print(" \__ DocumentRoot: {}".format(documentroot()))
+    except:
+        print("")
+
+    print(bcolors.OKGREEN + "-------------------------------------------------")
+    print("-                Sub Domains                    -")
+    print("-------------------------------------------------" + bcolors.ENDC)
+
+    try:
+        for i in subdomains():
+            if str(i) == "[]":
+                continue
+            else:
+                print(bcolors.OKGREEN + "-" + bcolors.ENDC + bcolors.WARNING + " "  + i + bcolors.ENDC)
+                print(" \__ DocumentRoot: {}".format(addon_documentroot(i)))
+    except:
+        print("")
+
+    print(bcolors.OKGREEN + "-------------------------------------------------" + bcolors.ENDC)
+
+except:
+    print("Domain invalid or typo")
