@@ -1,7 +1,7 @@
-# /usr/local/bin/python2.7
+#!/usr/bin/python
 # Binh Pham
-# Shows cPanel owner of a domain
-# Command: whoowns example.com
+# Gives an overview of a cPanel account
+# Command: account-review username
 
 import sys
 import subprocess
